@@ -124,6 +124,26 @@ public final class NSALoginController {
 		if (!hasDigit) {
 			throw new WeakPasswordException("Password must contain at least 1 digit.");
 		}
+		// Once we've generated the hash, clear the old password
+		// from memory for security purposes
+		byte[] hash = getHash(password, salt);
+		Arrays.fill(password, Character.MIN_VALUE);
+		user.setPassword("");
+
+		if(hash != null) {
+			// By Base64-encoding the raw bytes, we can store them as strings.
+			// This allows us to save the values to a file or database if needed.
+			// For more information on Base64 encoding, see:
+			// http://stackoverflow.com/questions/201479/what-is-base-64-encoding-used-for
+			// https://en.wikipedia.org/wiki/Base64
+			String hashString = Base64.getEncoder().encodeToString(hash);
+			String saltString = Base64.getEncoder().encodeToString(salt);
+			user.setHashedPassword(hashString);
+			user.setSalt(saltString);
+			} else {
+				user.setHashedPassword(null);
+			user.setSalt(null);
+		}
 	}
 	
 	/**
